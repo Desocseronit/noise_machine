@@ -3,7 +3,6 @@
 // скрываются как только мышь ливнет
 // у глобальных и локальных разные стили
 // поменять с датасетов на локалстор
-
 const presetTemplate = document.querySelector('.preset-template')
 const presetList = document.querySelector('#presets-list')
 const nameInput = presetList.querySelector('input')
@@ -12,12 +11,17 @@ const downloadBut = document.querySelector('#download')
 const uploadBut = document.querySelector('#upload')
 
 class Preset {
-    static allInstance = []
-    _name;
+    static allInstance = {}
+    _id;
+    _name = 'Unnamed';
     _json;
     _node;
     _isGlobal = false;
     isChanging = false;
+
+    get id() {
+        return this._id
+    }
 
     get json() {
         return this._json
@@ -39,24 +43,48 @@ class Preset {
         if (!this.isGlobal && newVal) {
             this._isGlobal = newVal
             this.node.classList.add('global')
+            let newPreset = JSON.parse(localStorage.getItem(this.id))
+            newPreset.isGlobal = newVal
+            localStorage.setItem(this.id, JSON.stringify(newPreset))
         }
     }
 
-    set name(name) {
-        name = name.trim() == '' ? 'Untitled preset' : name.trim()
-        this._name = name
-        this.node.querySelector('span').textContent = name
+    set name(newName) {
+        newName = newName.trim() == '' ? 'Untitled preset' : newName.trim()
+        this._name = newName
+        this.node.querySelector('span').textContent = newName
+        Preset.allInstance[this.id]._name = newName
+
+        let newPreset = JSON.parse(localStorage.getItem(this.id))
+        newPreset.name = newName
+        localStorage.setItem(this.id, JSON.stringify(newPreset))
     }
 
-    constructor(node, json) {
+    constructor(node, json, id = null, name = null, isGlobal = null) {
+        
+        this._id = id ?? `${Date.now()}${Math.random().toString(36).substr(2, 9)}`
         this._node = node
         this._json = json
+        this.isGlobal = isGlobal
+
         this.node.dataset.JSON = json
+
+        Preset.allInstance[this.id] = this
+
         presetList.appendChild(node)
-        this.changeName()
+
+        if (id == null && name == null && isGlobal == null) {
+            this.saveIntoLocalStorage()
+        }
+        console.log(this)
+        if (name != null) {
+            this.name = name;
+        }
+        else {
+            this.changeName()
+        }
 
         Preset.setControlHandler(this)
-        Preset.allInstance.push(this)
     }
 
     changeName() {
@@ -96,7 +124,18 @@ class Preset {
 
     delete() {
         this.node.remove()
-        Preset.allInstance.splice(Preset.allInstance.findIndex(item => item == this), 1)
+        delete Preset.allInstance[this.id]
+        localStorage.removeItem(this.id)
+    }
+
+    saveIntoLocalStorage() {
+        let json = {
+            id: this.id,
+            name: this.name,
+            json: this.json,
+            isGlobal: this.isGlobal
+        }
+        localStorage.setItem(this.id, JSON.stringify(json))
     }
 
     static setControlHandler(preset) {
@@ -145,21 +184,33 @@ class Preset {
 
         preset.node.addEventListener('contextmenu', e => {
             e.preventDefault();
+            preset.isChanging = true
             preset.node.classList.toggle('active');
         })
 
-        preset.node.addEventListener('click' , onLoadPreset)
+        preset.node.addEventListener('click', onLoadPreset)
 
-        preset.node.querySelector('#delete').addEventListener('click' , onDel)
+        preset.node.querySelector('#delete').addEventListener('click', onDel)
 
-        preset.node.querySelector('#global').addEventListener('click' , onGlobal)
+        preset.node.querySelector('#global').addEventListener('click', onGlobal)
 
-        preset.node.querySelector('#rename').addEventListener('click' , e => {
+        preset.node.querySelector('#rename').addEventListener('click', e => {
             preset.changeName()
         })
     }
 
+    static loadFromLocalStorage() {
+        Object.keys(localStorage).forEach(key => {
+            let preset = JSON.parse(localStorage.getItem(key))
+            let clone = presetTemplate.content.cloneNode(true)
+            let presetElement = clone.firstElementChild
+            new Preset(presetElement, preset.json, preset.id, preset.name, preset.isGlobal)
+        })
+    }
+
 }
+
+Preset.loadFromLocalStorage()
 
 saveBut.addEventListener('click', () => {
     let clone = presetTemplate.content.cloneNode(true);
