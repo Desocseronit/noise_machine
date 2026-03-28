@@ -204,15 +204,16 @@ class Preset {
     }
 
     static loadFromJSON(json) {
-        let preset = JSON.parse(localStorage.getItem(key))
         let clone = presetTemplate.content.cloneNode(true)
         let presetElement = clone.firstElementChild
-        new Preset(presetElement, preset.json, preset.id, preset.name, preset.isGlobal)
+        new Preset(presetElement, json.json, json.id, json.name, json.isGlobal)
     }
 
 }
 
-Preset.loadFromLocalStorage()
+Object.keys(localStorage).forEach(key => {
+    Preset.loadFromJSON(JSON.parse(localStorage.getItem(key)))
+})
 
 saveBut.addEventListener('click', () => {
     let clone = presetTemplate.content.cloneNode(true);
