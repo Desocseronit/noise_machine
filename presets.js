@@ -61,7 +61,7 @@ class Preset {
     }
 
     constructor(node, json, id = null, name = null, isGlobal = null) {
-        
+
         this._id = id ?? `${Date.now()}${Math.random().toString(36).substr(2, 9)}`
         this._node = node
         this._json = json
@@ -91,7 +91,7 @@ class Preset {
         nameInput.focus()
         nameInput.value = ''
         this.node.classList.add('changing')
-
+        this.isChanging = true
         const stopChange = () => {
             nameInput.removeEventListener('input', onInput);
             nameInput.removeEventListener('keydown', onKeyDown);
@@ -184,8 +184,12 @@ class Preset {
 
         preset.node.addEventListener('contextmenu', e => {
             e.preventDefault();
-            preset.isChanging = true
-            preset.node.classList.toggle('active');
+            preset.node.classList.add('active');
+        })
+
+        preset.node.addEventListener('mouseleave', e => {
+            e.preventDefault();
+            preset.node.classList.remove('active');
         })
 
         preset.node.addEventListener('click', onLoadPreset)
@@ -199,13 +203,11 @@ class Preset {
         })
     }
 
-    static loadFromLocalStorage() {
-        Object.keys(localStorage).forEach(key => {
-            let preset = JSON.parse(localStorage.getItem(key))
-            let clone = presetTemplate.content.cloneNode(true)
-            let presetElement = clone.firstElementChild
-            new Preset(presetElement, preset.json, preset.id, preset.name, preset.isGlobal)
-        })
+    static loadFromJSON(json) {
+        let preset = JSON.parse(localStorage.getItem(key))
+        let clone = presetTemplate.content.cloneNode(true)
+        let presetElement = clone.firstElementChild
+        new Preset(presetElement, preset.json, preset.id, preset.name, preset.isGlobal)
     }
 
 }
