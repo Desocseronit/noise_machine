@@ -1,14 +1,10 @@
-// по нажатию сохранить появляется ярлык присета и пользоваетль там сразу задает имя (после можно удалить (  при удалении глобального , удаление из локалки, но остается в бд)), сделать глобальным (загрузка в бд) , включить (просто клик))
-// открытие инструментов с помощью правой кнопки мыши (поялвяются ниже присета)
-// скрываются как только мышь ливнет
-// у глобальных и локальных разные стили
-// поменять с датасетов на локалстор
 const presetTemplate = document.querySelector('.preset-template')
 const presetList = document.querySelector('#presets-list')
 const nameInput = presetList.querySelector('input')
 const saveBut = document.querySelector('#save')
 const downloadBut = document.querySelector('#download')
 const uploadBut = document.querySelector('#upload')
+const searchInput = document.querySelector('#search input')
 
 class Preset {
     static allInstance = {}
@@ -203,12 +199,68 @@ class Preset {
         })
     }
 
+    hide() {
+        this.node.style.display = 'none'
+    }
+
+    show() {
+        this.node.style.display = 'flex'
+    }
+
     static loadFromJSON(json) {
         let clone = presetTemplate.content.cloneNode(true)
         let presetElement = clone.firstElementChild
         new Preset(presetElement, json.json, json.id, json.name, json.isGlobal)
     }
 
+    static findPresets(substr) {
+        substr = substr.toLowerCase()
+
+        // Экранируем спецсимволы HTML в строке поиска
+        const escapedSubstr = escapeHtml(substr)
+
+        Object.keys(Preset.allInstance).forEach(key => {
+            let preset = Preset.allInstance[key]
+            let name = preset.name
+            let nameLower = name.toLowerCase()
+
+            if (nameLower.includes(substr)) {
+                preset.show()
+                let span = preset.node.querySelector('span')
+                let index = nameLower.indexOf(substr)
+                if (index != -1) {
+
+                    let before = name.slice(0, index)
+                    let match = name.slice(index, index + substr.length)
+                    let after = name.slice(index + substr.length)
+
+                    let safeHtml = escapeHtml(before) +
+                        '<b>' + escapeHtml(match) + '</b>' +
+                        escapeHtml(after)
+
+                    span.innerHTML = safeHtml
+                } else {
+                    span.textContent = name
+                }
+            }
+            else {
+                preset.hide()
+                preset.node.querySelector('span').textContent = preset.name
+            }
+        });
+    }
+
+}
+
+function escapeHtml(text) {
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.replace(/[&<>"']/g, function (m) { return map[m]; });
 }
 
 Object.keys(localStorage).forEach(key => {
@@ -220,4 +272,9 @@ saveBut.addEventListener('click', () => {
     let presetElement = clone.firstElementChild;
 
     new Preset(presetElement, JSON.stringify(window.preset))
-});
+})
+
+searchInput.addEventListener('input', e => {
+    Preset.findPresets(e.target.value)
+})
+
