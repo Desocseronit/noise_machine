@@ -84,7 +84,6 @@ class soundCell {
             this.volume = 50
             this.audioNode.play()
             this.changeSlider('show')
-            this.changeSlider('hide')
         }
         else {
             this.node.classList.remove('active')
