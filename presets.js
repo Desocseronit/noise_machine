@@ -207,6 +207,27 @@ class Preset {
         this.node.style.display = 'flex'
     }
 
+    makeGlobal() {
+        let json = {
+            type: 'create',
+            id: this.id,
+            name: this.name,
+            json: this.json
+        }
+        console.log(json)
+        fetch('/globalPresets.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(json)
+        }).then(resp => {
+            return resp.json()
+        }).then(json => {
+            console.table(json)
+        })
+    }
+
     static loadFromJSON(json) {
         let clone = presetTemplate.content.cloneNode(true)
         let presetElement = clone.firstElementChild

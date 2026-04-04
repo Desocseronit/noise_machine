@@ -1,2 +1,24 @@
 <?php
-//тут кароче загрузка и выгрузка глобальнх присетов
+require_once 'Database.php';
+
+$db = Database::instance('host=localhost port=5452 dbname=noise_machine user=postgres password=1');
+
+$rawData = file_get_contents('php://input');
+$data = json_decode($rawData, true);
+
+echo"<pre>";
+
+if($data['type'] == 'create'){
+    if($db->createNewRecord('presets' , ['id','name'] , [$data['id'],$data['name']])){
+        $json = json_decode($data['json'], true);
+        foreach($json as $key=>$val){
+            $sound_id = $db->findRecord('sounds', 'id', "name = '".$key."'");
+            $db->createNewRecord('preset_sounds', ['preset_id', 'sound_id', 'volume'], [$data['id'],$sound_id['id'],$val]);
+            
+        }
+        echo "succes";
+    }
+    else echo 'preset`s alredy exist';
+}
+
+
