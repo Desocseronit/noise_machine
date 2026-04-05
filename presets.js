@@ -228,6 +228,24 @@ class Preset {
         })
     }
 
+    static loadGlobal(reqName){
+        let json = {
+            type: 'load',
+            requiredName: reqName
+        }
+        fetch('/globalPresets.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(json)
+        }).then(resp => {
+            return resp.json()
+        }).then(json => {
+            console.table(json)
+        })
+    }
+
     static loadFromJSON(json) {
         let clone = presetTemplate.content.cloneNode(true)
         let presetElement = clone.firstElementChild

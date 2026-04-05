@@ -16,9 +16,28 @@ if($data['type'] == 'create'){
             $db->createNewRecord('preset_sounds', ['preset_id', 'sound_id', 'volume'], [$data['id'],$sound_id['id'],$val]);
             
         }
-        echo "succes";
+        echo "{message: 'succes'}";
     }
-    else echo 'preset`s alredy exist';
+    else echo '{message: "preset`s alredy exist"}';
+}
+elseif($data['type'] == 'load'){
+    $presetId = $db->findRecord('presets', '*' , "name = '".$data['requiredName']."'")[0]['id'];
+    $rows = $db->findRecord('preset_sounds', '*', "preset_id = '".$presetId."'");
+    $soundNames = [];
+    $volumes = [];
+    foreach($rows as $row){
+        array_push($soundNames, $db->findRecord('sounds', '*' , "id = '".$row['sound_id']."'")[0]['name']);
+        array_push($volumes, $row['volume']);
+    }
+    $presetSoundsJson = formJson($soundNames , $volumes);
+    
+    $presetJson = [];
+    $presetJson['id'] = $presetId;
+    $presetJson['name'] = $data['requiredName'];
+    $presetJson['json'] = $presetSoundsJson;
+    $presetJson['isGlobal'] = true;
+
+    echo json_encode($presetJson);
 }
 
 
