@@ -43,7 +43,7 @@ class Database{
         }
     }
 
-    public function findRecord($tableName , $fields , $condition = null){
+    public function findRecord($tableName , $fields , $condition = null, $limit = null){
         $fields_str = '';
         $query = '';
         if($fields == '*'){
@@ -56,6 +56,16 @@ class Database{
         if($condition !== null){
             $query .= " WHERE $condition";
         }
-        return pg_fetch_assoc(pg_query($this->connection(), $query));
+        if($limit !== null){
+            $query .= " LIMIT $limit";
+        }
+        $result = pg_query($this->connection(), $query);
+
+        $rows = [];
+        while ($row = pg_fetch_assoc($result)) {
+            $rows[] = $row;
+        }
+        // echo $query;
+        return $rows;
     }
 }
