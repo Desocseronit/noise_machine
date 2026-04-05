@@ -19,3 +19,13 @@ function checkDataLength($val1, $val2){
     if(is_string($val2)) $val2 = explode(' ',trim($val2));
     return count($val1) == count($val2);
 }
+
+function formJson($keys=[], $vals = []){
+    if(count($keys) == count($vals)){
+        $res = [];
+        for($i = 0 ; $i < count($keys); $i++){
+            $res[$keys[$i]] = $vals[$i];
+        }
+        return json_encode($res);
+    }
+}
