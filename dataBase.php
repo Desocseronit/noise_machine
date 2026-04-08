@@ -1,26 +1,19 @@
 <?php
 require_once 'toolbox.php';
-echo '<pre>';
 class Database{
     private static $_instance = null;
     private $_connection;
 
     private function __construct($connect_str) {
         $this->_connection = pg_connect($connect_str);
-        if(!$this->_connection) echo 'connection failed<br>';
     }
 
     public static function instance($connect_str = null) {
         if (self::$_instance === null) {
             if ($connect_str === null) {
-                echo 'require connection string for first initialization<br>';
                 return null;
             }
             self::$_instance = new self($connect_str);
-            echo 'succsesfull connect<br>';
-        }
-        else{
-            echo 'connection is already exist<br>';
         }
         return self::$_instance;
     }
@@ -38,7 +31,6 @@ class Database{
             $query = "INSERT INTO $tableName ($fields_str) VALUES ($values_str)";
             return pg_query($this->connection(), $query);
         } else {
-            echo 'can not create new record';
             return false;
         }
     }
@@ -65,7 +57,6 @@ class Database{
         while ($row = pg_fetch_assoc($result)) {
             $rows[] = $row;
         }
-        // echo $query;
         return $rows;
     }
 }

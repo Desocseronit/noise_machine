@@ -214,7 +214,6 @@ class Preset {
             name: this.name,
             json: this.json
         }
-        console.log(json)
         fetch('/globalPresets.php', {
             method: 'POST',
             headers: {
@@ -222,9 +221,9 @@ class Preset {
             },
             body: JSON.stringify(json)
         }).then(resp => {
-            return resp.json()
-        }).then(json => {
-            console.table(json)
+            return resp.text()
+        }).then(message => {
+            console.log(message)
         })
     }
 
